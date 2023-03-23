@@ -1,5 +1,6 @@
 import { extendTheme } from "@chakra-ui/react";
 import { mode } from "@chakra-ui/theme-tools";
+import { colorTheme } from "./uitls/constants";
 
 const config = {
     initialColorMode: 'light',
@@ -11,7 +12,7 @@ const theme = extendTheme({
   styles: {
     global: (props:any) => ({
       body: {
-        bg: mode('gray.200'/*light_mode*/,"gray.200"/*dark mode */)(props),
+        bg: mode(colorTheme.secondary/*light_mode*/,"gray.200"/*dark mode */)(props),
       },
     }),
   },

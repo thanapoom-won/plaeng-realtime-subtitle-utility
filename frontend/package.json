@@ -21,6 +21,11 @@
     "next": "13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-speech-recognition": "^3.10.0",
+    "regenerator-runtime": "^0.13.11",
     "typescript": "5.0.2"
+  },
+  "devDependencies": {
+    "@types/react-speech-recognition": "^3.9.1"
   }
 }
