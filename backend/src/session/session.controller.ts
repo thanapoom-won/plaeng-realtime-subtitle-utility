@@ -1,5 +1,6 @@
-import { Body, Controller, Param, Post, Put } from '@nestjs/common';
-import { Participant } from './session.dto';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { HttpCode } from '@nestjs/common/decorators';
+import { HttpStatus } from '@nestjs/common/enums';
 import { SessionService } from './session.service';
 
 @Controller('session')
@@ -11,14 +12,10 @@ export class SessionController {
         return this.sessionService.newSession(hostSocketId);
     }
 
-    @Put('join/:sessionId')
-    async joinSession(@Body() participant : Participant, @Param('sessionId') sessionId: string){
-        return this.sessionService.joinSession(sessionId,participant)
-    }
-
-    @Put('language/:sessionId')
-    async changeLanguage(@Body() participant : Participant, @Param('sessionId') sessionId: string){
-        return this.sessionService.changeLanguage(sessionId,participant);
+    @HttpCode(HttpStatus.FOUND)
+    @Get('check/:sessionId')
+    async checkSession(@Param('sessionId') sessionId: string){
+        return this.sessionService.checkSession(sessionId)
     }
 
 }
