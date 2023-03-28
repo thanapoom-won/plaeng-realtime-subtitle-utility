@@ -1,4 +1,5 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
 import { Participant, Session } from './session.dto';
 
 @Injectable()
@@ -6,26 +7,22 @@ export class SessionService {
 
     private sessions : Map<string,Session> = new Map<string,Session>(); // sessionId to Session Object
 
-    async newSession(hostSocketId : string){
+    async newSession(hostSocketId : string, hostLanguage: string){
         const sessionIdLength = 5;
         const newSessionId = await this.generateSessionId(sessionIdLength);
-        await this.sessions.set(newSessionId,{
+        const newSession = {
+            hostLanguage : hostLanguage,
             hostSocketId : hostSocketId,
             subRoom: []
-        });
-        return newSessionId;
-    }
-
-    async checkSession(sessionId: string){
-        if(!this.sessions.has(sessionId)){
-            throw new HttpException("Session not found", HttpStatus.NOT_FOUND)
         }
-        return this.sessions.get(sessionId)
+        await this.sessions.set(newSessionId,newSession);
+        Logger.log(newSessionId, "Session Created");
+        return newSessionId;
     }
 
     async joinSession(sessionId : string, user: Participant){
         if(!this.sessions.has(sessionId)){
-            throw new HttpException("Session not found", HttpStatus.NOT_FOUND)
+            throw new WsException({message : "Session not found", status : 404})
         }else{
             const subRoomIdx = this.sessions.get(sessionId).subRoom.findIndex((sr)=>{
                 return sr.language === user.language;
@@ -38,12 +35,13 @@ export class SessionService {
             }else{
                 this.sessions.get(sessionId).subRoom[subRoomIdx].participantsWSId.push(user.socketId);
             }
+            Logger.log(this.sessions.get(sessionId), 'user "'+user.socketId+'" joined session');
         }
     }
 
     async changeLanguage(sessionId: string, user: Participant){
         if(!this.sessions.has(sessionId)){
-            throw new HttpException("Session not found", HttpStatus.NOT_FOUND)
+            throw new WsException({message : "Session not found", status : 404})
         }
         for(let i = 0; i < this.sessions.get(sessionId).subRoom.length; i++){
             const userIdx = this.sessions.get(sessionId).subRoom[i].participantsWSId.findIndex((id)=>{
@@ -62,15 +60,16 @@ export class SessionService {
                         participantsWSId: [user.socketId]
                     })
                 }
+                Logger.log(this.sessions.get(sessionId), 'user "'+user.socketId+'" changed language to ' + user.language);
                 return;
             }
         }
-        throw new HttpException('User is not in the session', HttpStatus.NOT_FOUND);
+        throw new WsException({message : "User is not in the session", status : 404})
     }
 
     async removeUserFromSession(socketId: string, sessionId : string){
         if(!this.sessions.has(sessionId)){
-            throw new HttpException("Session not found", HttpStatus.NOT_FOUND)
+            throw new WsException({message : "Session not found", status : 404})
         }
         for(let i = 0; i < this.sessions.get(sessionId).subRoom.length; i++){
             const userIdx = this.sessions.get(sessionId).subRoom[i].participantsWSId.findIndex(wsId=>{
@@ -78,16 +77,18 @@ export class SessionService {
             })
             if(userIdx !== -1){
                 this.sessions.get(sessionId).subRoom[i].participantsWSId.splice(userIdx,1);
+                Logger.log(this.sessions.get(sessionId), 'user "'+socketId+'" left session');
                 return;
             }
         }
-        throw new HttpException('User is not in the session', HttpStatus.NOT_FOUND);
+        throw new WsException({message : "User is not in the session", status : 404})
     }
 
     async endSession(sessionId : string){
         if(!this.sessions.has(sessionId)){
-            throw new HttpException("Session not found", HttpStatus.NOT_FOUND)
+            throw new WsException({message : "Session not found", status : 404})
         }
+        Logger.log(sessionId, 'session end');
         this.sessions.delete(sessionId);
     }
 
