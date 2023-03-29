@@ -6,7 +6,7 @@ export default function AppBar(){
     return(
         <Stack bgColor={colorTheme.primary}>
             <Box padding={'10px'} paddingBottom={'12px'} >
-            <Heading size='xl' color={'white'}>Plaeng</Heading>
+            <Heading size='xl' color={'white'}>Plæng</Heading>
             </Box>
         </Stack>
     )

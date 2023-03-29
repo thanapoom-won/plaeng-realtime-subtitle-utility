@@ -1,5 +1,7 @@
+import { ConfigService } from '@nestjs/config/dist';
 import {ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import { OnGatewayDisconnect } from '@nestjs/websockets/interfaces';
+import axios from 'axios';
 import { Server, Socket } from 'socket.io';
 import { ChangeLanguageDto, HostSpeechDto, JoinSessionDto } from './session.dto';
 import { SessionService } from './session.service';
@@ -15,7 +17,8 @@ export class SessionGateway implements OnGatewayDisconnect{
   @WebSocketServer()
   server : Server;
   
-  constructor(private readonly sessionService: SessionService) {
+  constructor(private readonly sessionService: SessionService,
+    private readonly configService: ConfigService) {
     
   }
   handleDisconnect(client: Socket) {
@@ -73,6 +76,19 @@ export class SessionGateway implements OnGatewayDisconnect{
       const session = this.sessionService.getSessionFromHostWsId(host.id);
       session.subRoom.forEach(sr=>{
         sr.participantsWSId.forEach(wsId=>{
+          if(dto.language == sr.language){
+            this.server.to(wsId).emit("subtitle",dto.speech);
+          }
+          else{
+            const apiKey = this.configService.get<string>('API_KEY');
+            axios.post("https://api.nlpcloud.io/v1/nllb-200-3-3b/translation",{
+              text : dto.speech,
+              source : dto.language,
+              target : sr.language
+            },{withCredentials: true, headers: {"Authorization" : `Bearer ${apiKey}`}}).then(res=>{
+              this.server.to(wsId).emit("subtitle",res.data.translation_text);
+            })
+          }
           this.server.to(wsId).emit("subtitle",dto.speech);
           this.sessionService.removeParticipant(wsId)
         })

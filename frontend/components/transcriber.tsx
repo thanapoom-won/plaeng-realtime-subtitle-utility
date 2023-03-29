@@ -1,5 +1,5 @@
 import { colorTheme, speechToTextParameter } from "@/uitls/constants";
-import { languageSpeechTags } from "@/uitls/language";
+import { languageSpeechTags, speechToTranslate } from "@/uitls/language";
 import { SocketConstant } from "@/uitls/socketUtil";
 import { Stack, Heading, Button, Box, Select } from "@chakra-ui/react";
 import { useRouter } from "next/router";
@@ -48,7 +48,7 @@ export function Transcriber(){
         },speechToTextParameter.speechGapTimeout)
         socket.emit("hostSpeech",{
             speech : transcript,
-            language: language
+            language: speechToTranslate.get(language)
         })
     },[transcript])
 

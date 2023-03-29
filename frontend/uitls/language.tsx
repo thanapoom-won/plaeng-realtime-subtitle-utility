@@ -26,4 +26,11 @@ export const languageTranslateTag = [
         tag : 'tha_Thai'
     }
 ]
+
+export const speechToTranslate : Map<string, string> = new Map([
+    ['en-GB', 'eng_Latn'],
+    ['en-US', 'eng_Latn'],
+    ['en-AU','eng_Latn'],
+    ['th-TH','tha_Thai']
+  ]);
 export const defaultTranslateLanguage = languageTranslateTag[0].tag
