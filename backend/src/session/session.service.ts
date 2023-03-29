@@ -6,6 +6,8 @@ import { Participant, Session } from './session.dto';
 export class SessionService {
 
     private sessions : Map<string,Session> = new Map<string,Session>(); // sessionId to Session Object
+    private participantToSession : Map<string,string> = new Map<string,string>();
+    private hostToSession : Map<string,string> = new Map<string,string>();
 
     async newSession(hostSocketId : string, hostLanguage: string){
         const sessionIdLength = 5;
@@ -15,9 +17,23 @@ export class SessionService {
             hostSocketId : hostSocketId,
             subRoom: []
         }
-        await this.sessions.set(newSessionId,newSession);
+        this.sessions.set(newSessionId,newSession);
+        this.hostToSession.set(hostSocketId,newSessionId);
         Logger.log(newSessionId, "Session Created");
         return newSessionId;
+    }
+    isHost(clientId: string){
+        return this.hostToSession.has(clientId)
+    }
+    isParticipant(clientId: string){
+        return this.participantToSession.has(clientId)
+    }
+    getSessionFromHostWsId(hostWsId: string){
+        const sessionId = this.hostToSession.get(hostWsId);
+        return this.sessions.get(sessionId);
+    }
+    removeParticipant(clientId : string){
+        return this.participantToSession.delete(clientId);
     }
 
     async joinSession(sessionId : string, user: Participant){
@@ -25,7 +41,7 @@ export class SessionService {
             throw new WsException({message : "Session not found", status : 404})
         }else{
             const subRoomIdx = this.sessions.get(sessionId).subRoom.findIndex((sr)=>{
-                return sr.language === user.language;
+                return sr.language == user.language;
             })
             if(subRoomIdx === -1){
                 this.sessions.get(sessionId).subRoom.push({
@@ -35,7 +51,9 @@ export class SessionService {
             }else{
                 this.sessions.get(sessionId).subRoom[subRoomIdx].participantsWSId.push(user.socketId);
             }
-            Logger.log(this.sessions.get(sessionId), 'user "'+user.socketId+'" joined session');
+            this.participantToSession.set(user.socketId,sessionId);
+            Logger.log(user.socketId + " joined session " + sessionId, "session join");
+            return true;
         }
     }
 
@@ -45,12 +63,12 @@ export class SessionService {
         }
         for(let i = 0; i < this.sessions.get(sessionId).subRoom.length; i++){
             const userIdx = this.sessions.get(sessionId).subRoom[i].participantsWSId.findIndex((id)=>{
-                return id === user.socketId;
+                return id == user.socketId;
             })
             if(userIdx !== -1){
                 this.sessions.get(sessionId).subRoom[i].participantsWSId.splice(userIdx,1);
                 const destSubRoom = this.sessions.get(sessionId).subRoom.findIndex((sr)=>{
-                    return sr.language === user.language
+                    return sr.language == user.language
                 })
                 if(destSubRoom !== -1){
                     this.sessions.get(sessionId).subRoom[destSubRoom].participantsWSId.push(user.socketId);
@@ -60,36 +78,41 @@ export class SessionService {
                         participantsWSId: [user.socketId]
                     })
                 }
-                Logger.log(this.sessions.get(sessionId), 'user "'+user.socketId+'" changed language to ' + user.language);
+                console.log(this.sessions.get(sessionId));
+                Logger.log('user "'+user.socketId+'" changed language to ' + user.language, "language changed");
                 return;
             }
         }
         throw new WsException({message : "User is not in the session", status : 404})
     }
 
-    async removeUserFromSession(socketId: string, sessionId : string){
-        if(!this.sessions.has(sessionId)){
-            throw new WsException({message : "Session not found", status : 404})
+    async removeUserFromSession(socketId: string){
+        if(!this.participantToSession.has(socketId)){
+            return;
         }
+        const sessionId = this.participantToSession.get(socketId)
         for(let i = 0; i < this.sessions.get(sessionId).subRoom.length; i++){
             const userIdx = this.sessions.get(sessionId).subRoom[i].participantsWSId.findIndex(wsId=>{
-                wsId === socketId;
+                return wsId == socketId;
             })
             if(userIdx !== -1){
                 this.sessions.get(sessionId).subRoom[i].participantsWSId.splice(userIdx,1);
-                Logger.log(this.sessions.get(sessionId), 'user "'+socketId+'" left session');
+                Logger.log( 'user "'+socketId+'" left session ' + sessionId, "session left");
+                this.participantToSession.delete(socketId);
                 return;
             }
         }
         throw new WsException({message : "User is not in the session", status : 404})
     }
 
-    async endSession(sessionId : string){
-        if(!this.sessions.has(sessionId)){
-            throw new WsException({message : "Session not found", status : 404})
+    async hostEndSession(hostWsId : string){
+        if(!this.hostToSession.has(hostWsId)){
+            throw new WsException({message : "Host not found", status : 404})
         }
+        const sessionId = this.hostToSession.get(hostWsId);
         Logger.log(sessionId, 'session end');
         this.sessions.delete(sessionId);
+        this.hostToSession.delete(hostWsId)
     }
 
     generateSessionId(sessionIdLength : number){
@@ -101,7 +124,7 @@ export class SessionService {
             for (let i =0;i <sessionIdLength; i++){
                 sessionId += number.charAt(Math.floor(Math.random() * number.length))
             }
-            Logger.log("generating session id, attemp: " + attemp, 'Session Service');
+            Logger.log("generating session id, attemp: " + attemp, 'Generate session Id');
             if(!this.sessions.has(sessionId)){
                 break;
             } 
