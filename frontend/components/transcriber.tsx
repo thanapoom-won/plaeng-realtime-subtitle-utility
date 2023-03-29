@@ -8,7 +8,6 @@ export function Transcriber(){
     const {
         transcript,
         resetTranscript,
-        listening,
         browserSupportsSpeechRecognition,
     } = useSpeechRecognition();
 
@@ -21,7 +20,7 @@ export function Transcriber(){
     // }
     const [resultCount, setResultCount] = useState(0);
     const [language, setLanaguage] = useState('');
-    const [result, setResult] = useState('');
+    const [listening, setListenning] = useState(false);
     const timerId = useRef<any>(null);
     
     useEffect(()=>{
@@ -38,14 +37,21 @@ export function Transcriber(){
             setResultCount(0);
         },speechToTextParameter.speechGapTimeout)
     },[transcript])
+
     function toggleListening(){
         if(listening){
-            SpeechRecognition.stopListening();
+            SpeechRecognition.getRecognition()!.onend = ()=>{
+            }
+            SpeechRecognition.getRecognition()?.abort();
+            setListenning(false);
         }else{
-            SpeechRecognition.startListening({language: language, continuous:true});
-            // SpeechRecognition.getRecognition()!.onresult = (event) =>{
-            //     setResult(event.results[0][0].transcript)
-            // }
+            SpeechRecognition.getRecognition()!.lang = language;
+            SpeechRecognition.getRecognition()?.start();
+            setListenning(true);
+            SpeechRecognition.getRecognition()!.onend = ()=>{
+                SpeechRecognition.getRecognition()!.lang = language;
+                SpeechRecognition.getRecognition()?.start();
+            }
         }
     }
     return(
