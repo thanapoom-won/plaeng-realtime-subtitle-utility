@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist';
 import {ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import { OnGatewayDisconnect } from '@nestjs/websockets/interfaces';
@@ -87,9 +88,10 @@ export class SessionGateway implements OnGatewayDisconnect{
               target : sr.language
             },{withCredentials: true, headers: {"Authorization" : `Bearer ${apiKey}`}}).then(res=>{
               this.server.to(wsId).emit("subtitle",res.data.translation_text);
+            }).catch(err=>{
+              Logger.error(err,"Translator API error")
             })
           }
-          this.server.to(wsId).emit("subtitle",dto.speech);
           this.sessionService.removeParticipant(wsId)
         })
       })

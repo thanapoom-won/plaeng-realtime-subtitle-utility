@@ -31,11 +31,14 @@ export function Transcriber(){
     const [language, setLanaguage] = useState('');
     const [listening, setListenning] = useState(false);
     const [sessionId, setSessionId] = useState('');
+    const [finalTranscript, setFinalTranscript] = useState('');
     const timerId = useRef<any>(null);
 
     useEffect(()=>{
         setResultCount(resultCount+1);
         if(resultCount > speechToTextParameter.resultThreshold){
+            setFinalTranscript(transcript)
+            sendSpeech(transcript,language)
             resetTranscript();
             setResultCount(0);
         }
@@ -43,20 +46,17 @@ export function Transcriber(){
             clearTimeout(timerId.current);
         }
         timerId.current = setTimeout(()=>{
+            setFinalTranscript(transcript)
+            sendSpeech(transcript,language)
             resetTranscript();
             setResultCount(0);
         },speechToTextParameter.speechGapTimeout)
-        socket.emit("hostSpeech",{
-            speech : transcript,
-            language: speechToTranslate.get(language)
-        })
     },[transcript])
 
     useEffect(()=>{
         if(sessionId == ''){
             socket.on('connect', ()=>{
                 socket.emit('hostSession',(res: any)=>{
-                    console.log(res)
                     setSessionId(res)
                 });
             })
@@ -77,8 +77,20 @@ export function Transcriber(){
             SpeechRecognition.getRecognition()!.onend = ()=>{
                 SpeechRecognition.getRecognition()!.lang = language;
                 SpeechRecognition.getRecognition()?.start();
+                setFinalTranscript(transcript)
+                sendSpeech(transcript,language)
             }
         }
+    }
+
+    function sendSpeech(speech : string, language : string){
+        if(speech.trim() == ""){
+            return
+        } 
+        socket.emit("hostSpeech",{
+            speech : speech,
+            language: speechToTranslate.get(language)
+        })
     }
     return(
         <Stack alignItems={'center'} spacing={8}>
@@ -103,7 +115,7 @@ export function Transcriber(){
             }
             <Box h={'30vh'} w={'70vw'}>
                 <Heading size={'lg'} color={colorTheme.primary} textAlign='center'>
-                    {transcript}
+                    {finalTranscript}
                 </Heading>
             </Box>
             </Stack>
