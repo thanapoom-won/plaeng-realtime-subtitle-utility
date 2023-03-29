@@ -1,7 +1,7 @@
 import {ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import { OnGatewayDisconnect } from '@nestjs/websockets/interfaces';
 import { Server, Socket } from 'socket.io';
-import { ChangeLanguageDto, CreateSessionDto, HostSpeechDto, JoinSessionDto } from './session.dto';
+import { ChangeLanguageDto, HostSpeechDto, JoinSessionDto } from './session.dto';
 import { SessionService } from './session.service';
 
 @WebSocketGateway({
@@ -36,10 +36,9 @@ export class SessionGateway implements OnGatewayDisconnect{
 
   @SubscribeMessage('hostSession')
   async createSession(
-    @MessageBody() dto : CreateSessionDto,
     @ConnectedSocket() host: Socket
   ){
-    return await this.sessionService.newSession(host.id,dto.hostLanguage)
+    return await this.sessionService.newSession(host.id)
   }
 
   @SubscribeMessage('joinSession')

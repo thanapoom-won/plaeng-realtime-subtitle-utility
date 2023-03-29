@@ -1,8 +1,17 @@
 import { colorTheme, speechToTextParameter } from "@/uitls/constants";
 import { languageSpeechTags } from "@/uitls/language";
+import { SocketConstant } from "@/uitls/socketUtil";
 import { Stack, Heading, Button, Box, Select } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
+import { io } from "socket.io-client";
+
+const socket = io(SocketConstant.baseUrl,{
+    transports: ['websocket'],
+    autoConnect: false
+});
+
 
 export function Transcriber(){
     const {
@@ -21,8 +30,9 @@ export function Transcriber(){
     const [resultCount, setResultCount] = useState(0);
     const [language, setLanaguage] = useState('');
     const [listening, setListenning] = useState(false);
+    const [sessionId, setSessionId] = useState('');
     const timerId = useRef<any>(null);
-    
+
     useEffect(()=>{
         setResultCount(resultCount+1);
         if(resultCount > speechToTextParameter.resultThreshold){
@@ -36,7 +46,23 @@ export function Transcriber(){
             resetTranscript();
             setResultCount(0);
         },speechToTextParameter.speechGapTimeout)
+        socket.emit("hostSpeech",{
+            speech : transcript,
+            language: language
+        })
     },[transcript])
+
+    useEffect(()=>{
+        if(sessionId == ''){
+            socket.on('connect', ()=>{
+                socket.emit('hostSession',(res: any)=>{
+                    console.log(res)
+                    setSessionId(res)
+                });
+            })
+            socket.connect();
+        }
+    },[])
 
     function toggleListening(){
         if(listening){
@@ -56,7 +82,7 @@ export function Transcriber(){
     }
     return(
         <Stack alignItems={'center'} spacing={8}>
-            <Heading size='xl' color={colorTheme.primary}>Session #12345978</Heading>
+            <Heading size='xl' color={colorTheme.primary}>Session #{sessionId}</Heading>
             <Box w={'30vw'}>
             <Select placeholder="Select speech language" onChange={e=>{
                 setLanaguage(e.target.value)

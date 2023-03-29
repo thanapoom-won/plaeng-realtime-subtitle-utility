@@ -9,11 +9,10 @@ export class SessionService {
     private participantToSession : Map<string,string> = new Map<string,string>();
     private hostToSession : Map<string,string> = new Map<string,string>();
 
-    async newSession(hostSocketId : string, hostLanguage: string){
+    async newSession(hostSocketId : string){
         const sessionIdLength = 5;
         const newSessionId = await this.generateSessionId(sessionIdLength);
         const newSession = {
-            hostLanguage : hostLanguage,
             hostSocketId : hostSocketId,
             subRoom: []
         }
