@@ -1,5 +1,5 @@
 import { colorTheme } from "@/uitls/constants"
-import { defaultTranslateLanguage, languageSpeechTags } from "@/uitls/language";
+import { defaultTranslateLanguage, languageSpeechTags, languageTranslateTag } from "@/uitls/language";
 import { RESTConstant } from "@/uitls/restUtil";
 import { SocketConstant } from "@/uitls/socketUtil";
 import { Stack, Heading, Select, Button, Box } from "@chakra-ui/react"
@@ -55,9 +55,14 @@ export function Participant(){
             <Box w={'30vw'}>
             <Select placeholder="Select language" onChange={e=>{
                 setLanaguage(e.target.value)
+                socket.emit('changeLanguage',{
+                    language: e.target.value,
+                    sessionId : sessionId
+                });
+
             }} bgColor='white'>
                 {
-                    languageSpeechTags.map(e=>{
+                    languageTranslateTag.map(e=>{
                         return (<option value={e.tag} key={e.tag}>
                             {e.name}
                         </option>)

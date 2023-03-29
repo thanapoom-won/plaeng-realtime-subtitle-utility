@@ -16,5 +16,14 @@ export const languageSpeechTags=[
         tag: 'en-AU'
     },
 ]
-
-export const defaultTranslateLanguage = languageSpeechTags[0].tag
+export const languageTranslateTag = [
+    {
+        name :'English',
+        tag: 'eng_Latn'
+    },
+    {
+        name : 'Thai',
+        tag : 'tha_Thai'
+    }
+]
+export const defaultTranslateLanguage = languageTranslateTag[0].tag

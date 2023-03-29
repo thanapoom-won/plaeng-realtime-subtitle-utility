@@ -73,7 +73,6 @@ export class SessionGateway implements OnGatewayDisconnect{
       const session = this.sessionService.getSessionFromHostWsId(host.id);
       session.subRoom.forEach(sr=>{
         sr.participantsWSId.forEach(wsId=>{
-          // no translation
           this.server.to(wsId).emit("subtitle",dto.speech);
           this.sessionService.removeParticipant(wsId)
         })
