@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config/dist';
 import {ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import { OnGatewayDisconnect } from '@nestjs/websockets/interfaces';
 import axios from 'axios';
+import * as translate from 'translate-google';
 import { Server, Socket } from 'socket.io';
 import { ChangeLanguageDto, HostSpeechDto, JoinSessionDto } from './session.dto';
 import { SessionService } from './session.service';
@@ -77,17 +78,22 @@ export class SessionGateway implements OnGatewayDisconnect{
       const session = this.sessionService.getSessionFromHostWsId(host.id);
       session.subRoom.forEach(sr=>{
         sr.participantsWSId.forEach(wsId=>{
-          if(dto.language == sr.language){
+          if(dto.language == sr.language || dto.speech.trim() == ""){
             this.server.to(wsId).emit("subtitle",dto.speech);
           }
           else{
-            const apiKey = this.configService.get<string>('API_KEY');
-            axios.post("https://api.nlpcloud.io/v1/nllb-200-3-3b/translation",{
-              text : dto.speech,
-              source : dto.language,
-              target : sr.language
-            },{withCredentials: true, headers: {"Authorization" : `Bearer ${apiKey}`}}).then(res=>{
-              this.server.to(wsId).emit("subtitle",res.data.translation_text);
+            // const apiKey = this.configService.get<string>('API_KEY');
+            // axios.post("https://api.nlpcloud.io/v1/nllb-200-3-3b/translation",{
+            //   text : dto.speech,
+            //   source : dto.language,
+            //   target : sr.language
+            // },{withCredentials: true, headers: {"Authorization" : `Bearer ${apiKey}`}}).then(res=>{
+            //   this.server.to(wsId).emit("subtitle",res.data.translation_text);
+            // }).catch(err=>{
+            //   Logger.error(err,"Translator API error")
+            // })
+            translate(dto.speech, {from : dto.language, to : sr.language}).then(res=>{
+              this.server.to(wsId).emit("subtitle",res)
             }).catch(err=>{
               Logger.error(err,"Translator API error")
             })

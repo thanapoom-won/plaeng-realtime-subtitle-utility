@@ -19,18 +19,18 @@ export const languageSpeechTags=[
 export const languageTranslateTag = [
     {
         name :'English',
-        tag: 'eng_Latn'
+        tag: 'en'
     },
     {
         name : 'Thai',
-        tag : 'tha_Thai'
+        tag : 'th'
     }
 ]
 
 export const speechToTranslate : Map<string, string> = new Map([
-    ['en-GB', 'eng_Latn'],
-    ['en-US', 'eng_Latn'],
-    ['en-AU','eng_Latn'],
-    ['th-TH','tha_Thai']
+    ['en-GB', 'en'],
+    ['en-US', 'en'],
+    ['en-AU','en'],
+    ['th-TH','th']
   ]);
 export const defaultTranslateLanguage = languageTranslateTag[0].tag

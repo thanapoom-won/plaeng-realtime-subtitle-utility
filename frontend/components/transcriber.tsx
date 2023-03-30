@@ -31,14 +31,13 @@ export function Transcriber(){
     const [language, setLanaguage] = useState('');
     const [listening, setListenning] = useState(false);
     const [sessionId, setSessionId] = useState('');
-    const [finalTranscript, setFinalTranscript] = useState('');
+    // const [finalTranscript, setFinalTranscript] = useState('');
     const timerId = useRef<any>(null);
 
     useEffect(()=>{
         setResultCount(resultCount+1);
         if(resultCount > speechToTextParameter.resultThreshold){
-            setFinalTranscript(transcript)
-            sendSpeech(transcript,language)
+            //setFinalTranscript(transcript)
             resetTranscript();
             setResultCount(0);
         }
@@ -46,11 +45,11 @@ export function Transcriber(){
             clearTimeout(timerId.current);
         }
         timerId.current = setTimeout(()=>{
-            setFinalTranscript(transcript)
-            sendSpeech(transcript,language)
+            //setFinalTranscript(transcript)
             resetTranscript();
             setResultCount(0);
         },speechToTextParameter.speechGapTimeout)
+        sendSpeech(transcript,language)
     },[transcript])
 
     useEffect(()=>{
@@ -64,6 +63,13 @@ export function Transcriber(){
         }
     },[])
 
+    function onMessageEnd(event : any){
+        //setFinalTranscript(transcript)
+        sendSpeech(transcript,language)
+        SpeechRecognition.getRecognition()!.lang = language;
+        SpeechRecognition.getRecognition()?.start();
+    }
+
     function toggleListening(){
         if(listening){
             SpeechRecognition.getRecognition()!.onend = ()=>{
@@ -74,24 +80,23 @@ export function Transcriber(){
             SpeechRecognition.getRecognition()!.lang = language;
             SpeechRecognition.getRecognition()?.start();
             setListenning(true);
-            SpeechRecognition.getRecognition()!.onend = ()=>{
-                SpeechRecognition.getRecognition()!.lang = language;
-                SpeechRecognition.getRecognition()?.start();
-                setFinalTranscript(transcript)
-                sendSpeech(transcript,language)
+            SpeechRecognition.getRecognition()!.onend = onMessageEnd
+            SpeechRecognition.getRecognition()!.onspeechstart = ()=>{
+                console.log("start");
             }
         }
     }
 
     function sendSpeech(speech : string, language : string){
-        if(speech.trim() == ""){
-            return
-        } 
+        if(speech == ""){
+            return;
+        }
         socket.emit("hostSpeech",{
             speech : speech,
             language: speechToTranslate.get(language)
         })
     }
+
     return(
         <Stack alignItems={'center'} spacing={8}>
             <Heading size='xl' color={colorTheme.primary}>Session #{sessionId}</Heading>
@@ -115,7 +120,7 @@ export function Transcriber(){
             }
             <Box h={'30vh'} w={'70vw'}>
                 <Heading size={'lg'} color={colorTheme.primary} textAlign='center'>
-                    {finalTranscript}
+                    {transcript}
                 </Heading>
             </Box>
             </Stack>
