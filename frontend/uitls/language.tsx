@@ -1,15 +1,15 @@
 export const languageSpeechTags=[
     {
+        name : 'Thai',
+        tag: 'th-TH'
+    },
+    {
         name : 'English (US)',
         tag: 'en-US'
     },
     {
         name : 'English (UK)',
         tag: 'en-GB'
-    },
-    {
-        name : 'Thai',
-        tag: 'th-TH'
     },
     {
         name : 'English (Australia)',

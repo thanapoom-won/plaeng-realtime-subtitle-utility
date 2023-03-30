@@ -1,7 +1,7 @@
 import { colorTheme, speechToTextParameter } from "@/uitls/constants";
 import { languageSpeechTags, speechToTranslate } from "@/uitls/language";
 import { SocketConstant } from "@/uitls/socketUtil";
-import { Stack, Heading, Button, Box, Select } from "@chakra-ui/react";
+import { Stack, Heading, Button, Box, Select, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
@@ -28,7 +28,7 @@ export function Transcriber(){
     //     )
     // }
     const [resultCount, setResultCount] = useState(0);
-    const [language, setLanaguage] = useState('');
+    const [language, setLanaguage] = useState(languageSpeechTags[0].tag);
     const [listening, setListenning] = useState(false);
     const [sessionId, setSessionId] = useState('');
     // const [finalTranscript, setFinalTranscript] = useState('');
@@ -101,9 +101,10 @@ export function Transcriber(){
         <Stack alignItems={'center'} spacing={8}>
             <Heading size='xl' color={colorTheme.primary}>Session #{sessionId}</Heading>
             <Box w={'30vw'}>
-            <Select placeholder="Select speech language" onChange={e=>{
+            <Text>Speech language</Text>
+            <Select onChange={e=>{
                 setLanaguage(e.target.value)
-            }} bgColor='white'>
+            }} bgColor='white' defaultValue={languageSpeechTags[0].tag}>
                 {
                     languageSpeechTags.map(e=>{
                         return (<option value={e.tag} key={e.tag}>
