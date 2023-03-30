@@ -6,7 +6,7 @@ import { useRef } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const sessionId = useRef(null);
+  const sessionId = useRef<any>(null);
   return (
     <Stack h={'85vh'}>
       <AppBar/>
@@ -17,7 +17,8 @@ export default function Home() {
           </Input>
           <Stack w={'20vw'}>
             <Button bgColor={colorTheme.primary} color = {"white"} onClick={()=>{
-              router.push("/session?sessionId=" + sessionId.current?.value)
+                router.push("/session?sessionId=" + sessionId.current.value)
+              
             }}>Join session</Button>
             <Button bgColor={colorTheme.primary} color={"white"}
             onClick={()=>{
