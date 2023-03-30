@@ -1,11 +1,11 @@
-import { colorTheme } from "@/uitls/constants"
+import { colorTheme, speechToTextParameter } from "@/uitls/constants"
 import { defaultTranslateLanguage, languageSpeechTags, languageTranslateTag } from "@/uitls/language";
 import { RESTConstant } from "@/uitls/restUtil";
 import { SocketConstant } from "@/uitls/socketUtil";
 import { Stack, Heading, Select, Button, Box } from "@chakra-ui/react"
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const socket = io(SocketConstant.baseUrl,{
@@ -47,6 +47,16 @@ export function Participant(){
         socket.connect();
         
     },[router.isReady])
+    
+    const timerId = useRef<any>(null);
+    useEffect(()=>{
+        if(timerId.current !== null){
+            clearTimeout(timerId.current);
+        }
+        timerId.current = setTimeout(()=>{
+            setSubtitle('');
+        },speechToTextParameter.speechGapTimeout)
+    },[subtitle])
 
     
     return(

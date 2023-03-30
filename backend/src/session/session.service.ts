@@ -77,7 +77,6 @@ export class SessionService {
                         participantsWSId: [user.socketId]
                     })
                 }
-                console.log(this.sessions.get(sessionId));
                 Logger.log('user "'+user.socketId+'" changed language to ' + user.language, "language changed");
                 return;
             }
