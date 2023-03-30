@@ -48,7 +48,7 @@ export function Transcriber(){
             //setFinalTranscript(transcript)
             resetTranscript();
             setResultCount(0);
-        },speechToTextParameter.speechGapTimeout)
+        },speechToTextParameter.speechGapMultiplier * transcript.length)
         sendSpeech(transcript,language)
     },[transcript])
 
@@ -65,7 +65,6 @@ export function Transcriber(){
 
     function onMessageEnd(event : any){
         //setFinalTranscript(transcript)
-        sendSpeech(transcript,language)
         SpeechRecognition.getRecognition()!.lang = language;
         SpeechRecognition.getRecognition()?.start();
     }
@@ -81,9 +80,6 @@ export function Transcriber(){
             SpeechRecognition.getRecognition()?.start();
             setListenning(true);
             SpeechRecognition.getRecognition()!.onend = onMessageEnd
-            SpeechRecognition.getRecognition()!.onspeechstart = ()=>{
-                console.log("start");
-            }
         }
     }
 

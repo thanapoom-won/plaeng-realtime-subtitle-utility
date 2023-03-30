@@ -55,7 +55,7 @@ export function Participant(){
         }
         timerId.current = setTimeout(()=>{
             setSubtitle('');
-        },speechToTextParameter.speechGapTimeout)
+        },speechToTextParameter.speechGapMultiplier * subtitle.length)
     },[subtitle])
 
     
