@@ -5,5 +5,5 @@ export const colorTheme = {
 
 export const speechToTextParameter={
     resultThreshold : 50,
-    speechGapMultiplier: 100
+    speechGapMultiplier: 80
 }

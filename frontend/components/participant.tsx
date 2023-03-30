@@ -50,12 +50,16 @@ export function Participant(){
     
     const timerId = useRef<any>(null);
     useEffect(()=>{
+        let resetTime = speechToTextParameter.speechGapMultiplier * subtitle.length;
+        if(resetTime < 1000){
+            resetTime = 1000
+        }
         if(timerId.current !== null){
             clearTimeout(timerId.current);
         }
         timerId.current = setTimeout(()=>{
             setSubtitle('');
-        },speechToTextParameter.speechGapMultiplier * subtitle.length)
+        },resetTime)
     },[subtitle])
 
     

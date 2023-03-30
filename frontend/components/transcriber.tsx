@@ -31,26 +31,28 @@ export function Transcriber(){
     const [language, setLanaguage] = useState(languageSpeechTags[0].tag);
     const [listening, setListenning] = useState(false);
     const [sessionId, setSessionId] = useState('');
-    // const [finalTranscript, setFinalTranscript] = useState('');
+    const [finalTranscript, setFinalTranscript] = useState('');
     const timerId = useRef<any>(null);
 
     useEffect(()=>{
-        setResultCount(resultCount+1);
-        if(resultCount > speechToTextParameter.resultThreshold){
-            //setFinalTranscript(transcript)
-            resetTranscript();
-            setResultCount(0);
+        if(transcript.trim() != ''){
+            setFinalTranscript(transcript);
+        }
+    },[transcript])
+
+    useEffect(()=>{
+        let resetTime = speechToTextParameter.speechGapMultiplier * finalTranscript.length;
+        if(resetTime < 1000){
+            resetTime = 1000
         }
         if(timerId.current !== null){
             clearTimeout(timerId.current);
         }
         timerId.current = setTimeout(()=>{
-            //setFinalTranscript(transcript)
-            resetTranscript();
-            setResultCount(0);
-        },speechToTextParameter.speechGapMultiplier * transcript.length)
-        sendSpeech(transcript,language)
-    },[transcript])
+            setFinalTranscript('');
+        },resetTime)
+        sendSpeech(finalTranscript,language)
+    },[finalTranscript])
 
     useEffect(()=>{
         if(sessionId == ''){
@@ -64,7 +66,7 @@ export function Transcriber(){
     },[])
 
     function onMessageEnd(event : any){
-        //setFinalTranscript(transcript)
+
         SpeechRecognition.getRecognition()!.lang = language;
         SpeechRecognition.getRecognition()?.start();
     }
@@ -80,6 +82,9 @@ export function Transcriber(){
             SpeechRecognition.getRecognition()?.start();
             setListenning(true);
             SpeechRecognition.getRecognition()!.onend = onMessageEnd
+            SpeechRecognition.getRecognition()!.onaudiostart = ()=>{
+                resetTranscript();
+            }
         }
     }
 
@@ -117,7 +122,7 @@ export function Transcriber(){
             }
             <Box h={'30vh'} w={'70vw'}>
                 <Heading size={'lg'} color={colorTheme.primary} textAlign='center'>
-                    {transcript}
+                    {finalTranscript}
                 </Heading>
             </Box>
             </Stack>
