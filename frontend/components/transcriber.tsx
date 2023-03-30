@@ -38,6 +38,7 @@ export function Transcriber(){
         if(transcript.trim() != ''){
             setFinalTranscript(transcript);
         }
+        sendSpeech(transcript,language)
     },[transcript])
 
     useEffect(()=>{
@@ -51,7 +52,6 @@ export function Transcriber(){
         timerId.current = setTimeout(()=>{
             setFinalTranscript('');
         },resetTime)
-        sendSpeech(finalTranscript,language)
     },[finalTranscript])
 
     useEffect(()=>{
