@@ -6,6 +6,5 @@ COPY . .
 
 FROM base AS build
 COPY --from=base /user/src/app .
-ENV NX_PORT = ${PORT}
-EXPOSE ${PORT}
-CMD [ "sh", "-c" , "yarn build && yarn start -p ${NX_PORT}"]
+EXPOSE 443
+CMD [ "sh", "-c" , "yarn build && yarn start -p 443"]

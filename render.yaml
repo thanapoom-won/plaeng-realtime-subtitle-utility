@@ -16,8 +16,6 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     envVars:
-    - key: PORT
-      value: 443
     - key: NEXT_PUBLIC_API_URL
       value: wss://plaeng-backend.onrender.com
     
