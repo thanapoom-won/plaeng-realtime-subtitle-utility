@@ -91,7 +91,6 @@ export class SessionGateway implements OnGatewayDisconnect{
             }
             
           }
-          this.sessionService.removeParticipant(wsId)
         })
       })
     }else{
