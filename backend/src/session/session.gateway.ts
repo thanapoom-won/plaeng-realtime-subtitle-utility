@@ -76,22 +76,22 @@ export class SessionGateway implements OnGatewayDisconnect{
   ){
     if(this.sessionService.isHost(host.id)){
       const session = this.sessionService.getSessionFromHostWsId(host.id);
-      session.subRoom.forEach(sr=>{
-        sr.participantsWSId.forEach(wsId=>{
-          if(dto.language == sr.language || dto.speech.trim() == ""){
+      session.subRoom.forEach(async sr=>{
+        if(dto.language == sr.language || dto.speech.trim() == ""){
+          sr.participantsWSId.forEach(wsId=>{
             this.server.to(wsId).emit("subtitle",dto.speech);
+          })
+        }
+        else if(dto.speech !== null && dto.speech.trim() !== ''){
+          const translatResult = await translate(dto.speech, {from : dto.language, to : sr.language});
+          try{
+            sr.participantsWSId.forEach(wsId=>{
+              this.server.to(wsId).emit("subtitle",translatResult);
+            })
+          }catch(err){
+            Logger.error(err, "Translator error");
           }
-          else{
-            if(dto.speech !== null && dto.speech.trim() !== ''){
-              translate(dto.speech, {from : dto.language, to : sr.language}).then(res=>{
-                this.server.to(wsId).emit("subtitle",res)
-              }).catch(err=>{
-                Logger.error(err,"Translator API error")
-              })
-            }
-            
           }
-        })
       })
     }else{
       throw new WsException({message : "Host not found", status : 404})
