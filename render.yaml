@@ -7,3 +7,17 @@ services:
     branch: main
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
+  - type: web
+    name: plaeng-frontend
+    env: docker
+    region: oregon
+    plan: free
+    branch: main
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+    - key: PORT
+      value: 443
+    - key: NEXT_PUBLIC_API_URL
+      value: wss://plaeng-backend.onrender.com
+    
