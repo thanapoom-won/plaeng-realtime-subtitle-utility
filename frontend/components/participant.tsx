@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const socket = io(SocketConstant.baseUrl,{
+const socket = io(SocketConstant.baseUrl || 'ws://localhost:8080',{
     transports: ['websocket'],
     autoConnect: false
 });

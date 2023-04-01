@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { io } from "socket.io-client";
 
-const socket = io(SocketConstant.baseUrl,{
+const socket = io(SocketConstant.baseUrl || 'ws://localhost:8080',{
     transports: ['websocket'],
     autoConnect: false
 });

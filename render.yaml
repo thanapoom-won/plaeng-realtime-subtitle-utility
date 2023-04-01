@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: plaeng-backend
+    env: docker
+    region: singapore
+    plan: starter
+    branch: main
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend

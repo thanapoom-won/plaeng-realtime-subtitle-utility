@@ -1,3 +1,3 @@
 export const SocketConstant = {
-    baseUrl : 'ws://localhost:8080'
+    baseUrl : process.env.NEXT_PUBLIC_API_URL
 }
