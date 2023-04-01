@@ -82,21 +82,14 @@ export class SessionGateway implements OnGatewayDisconnect{
             this.server.to(wsId).emit("subtitle",dto.speech);
           }
           else{
-            // const apiKey = this.configService.get<string>('API_KEY');
-            // axios.post("https://api.nlpcloud.io/v1/nllb-200-3-3b/translation",{
-            //   text : dto.speech,
-            //   source : dto.language,
-            //   target : sr.language
-            // },{withCredentials: true, headers: {"Authorization" : `Bearer ${apiKey}`}}).then(res=>{
-            //   this.server.to(wsId).emit("subtitle",res.data.translation_text);
-            // }).catch(err=>{
-            //   Logger.error(err,"Translator API error")
-            // })
-            translate(dto.speech, {from : dto.language, to : sr.language}).then(res=>{
-              this.server.to(wsId).emit("subtitle",res)
-            }).catch(err=>{
-              Logger.error(err,"Translator API error")
-            })
+            if(dto.speech !== null && dto.speech.trim() !== ''){
+              translate(dto.speech, {from : dto.language, to : sr.language}).then(res=>{
+                this.server.to(wsId).emit("subtitle",res)
+              }).catch(err=>{
+                Logger.error(err,"Translator API error")
+              })
+            }
+            
           }
           this.sessionService.removeParticipant(wsId)
         })

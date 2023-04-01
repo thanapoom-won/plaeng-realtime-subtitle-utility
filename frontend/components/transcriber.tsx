@@ -82,7 +82,7 @@ export function Transcriber(){
             SpeechRecognition.getRecognition()?.start();
             setListenning(true);
             SpeechRecognition.getRecognition()!.onend = onMessageEnd
-            SpeechRecognition.getRecognition()!.onaudiostart = ()=>{
+            SpeechRecognition.getRecognition()!.onspeechstart = ()=>{
                 resetTranscript();
             }
         }
