@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { colorTheme, speechToTextParameter } from "@/uitls/constants";
 import { languageSpeechTags, speechToTranslate } from "@/uitls/language";
 import { SocketConstant } from "@/uitls/socketUtil";
-import { Stack, Heading, Button, Box, Select, Text } from "@chakra-ui/react";
+import { Stack, Heading, Button, Box, Select, Text, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
@@ -18,21 +19,15 @@ export function Transcriber(){
         transcript,
         resetTranscript,
         browserSupportsSpeechRecognition,
+        isMicrophoneAvailable
     } = useSpeechRecognition();
-
-    // if(!browserSupportsSpeechRecognition){
-    //     return(
-    //         <Stack alignItems={'center'} spacing={8}>
-    //         <Heading size='xl' color={colorTheme.primary}>This browser doesn&apos;t support speech recognition</Heading>
-    //         </Stack>
-    //     )
-    // }
-    const [resultCount, setResultCount] = useState(0);
+    const [modalText, setModalText] = useState('');
     const [language, setLanaguage] = useState(languageSpeechTags[0].tag);
     const [listening, setListenning] = useState(false);
     const [sessionId, setSessionId] = useState('');
     const [finalTranscript, setFinalTranscript] = useState('');
     const timerId = useRef<any>(null);
+    const { isOpen, onOpen, onClose } = useDisclosure()
 
     useEffect(()=>{
         if(transcript.trim() != ''){
@@ -65,6 +60,17 @@ export function Transcriber(){
         }
     },[])
 
+    useEffect(()=>{
+        if(!browserSupportsSpeechRecognition){
+            setModalText("Your browser does not support speech recognition.")
+            onOpen();
+        }
+        else if(!isMicrophoneAvailable){
+            setModalText("Microphone access is not permitted.")
+            onOpen();
+        }
+    },[isMicrophoneAvailable,browserSupportsSpeechRecognition])
+
     function onMessageEnd(event : any){
 
         SpeechRecognition.getRecognition()!.lang = language;
@@ -72,20 +78,23 @@ export function Transcriber(){
     }
 
     function toggleListening(){
-        if(listening){
-            SpeechRecognition.getRecognition()!.onend = ()=>{
-            }
-            SpeechRecognition.getRecognition()?.abort();
-            setListenning(false);
-        }else{
-            SpeechRecognition.getRecognition()!.lang = language;
-            SpeechRecognition.getRecognition()?.start();
-            setListenning(true);
-            SpeechRecognition.getRecognition()!.onend = onMessageEnd
-            SpeechRecognition.getRecognition()!.onspeechstart = ()=>{
-                resetTranscript();
+        if(isMicrophoneAvailable){
+            if(listening){
+                SpeechRecognition.getRecognition()!.onend = ()=>{
+                }
+                SpeechRecognition.getRecognition()?.abort();
+                setListenning(false);
+            }else{
+                SpeechRecognition.getRecognition()!.lang = language;
+                SpeechRecognition.getRecognition()?.start();
+                setListenning(true);
+                SpeechRecognition.getRecognition()!.onend = onMessageEnd
+                SpeechRecognition.getRecognition()!.onspeechstart = ()=>{
+                    resetTranscript();
+                }
             }
         }
+        
     }
 
     function sendSpeech(speech : string, language : string){
@@ -99,6 +108,23 @@ export function Transcriber(){
     }
 
     return(
+        <>
+        <Modal  isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Modal Title</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {modalText}
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+        </Modal>
         <Stack alignItems={'center'} spacing={8}>
             <Heading size='xl' color={colorTheme.primary}>Session #{sessionId}</Heading>
             <Box w={'30vw'}>
@@ -126,5 +152,6 @@ export function Transcriber(){
                 </Heading>
             </Box>
             </Stack>
+            </>
     )
 }

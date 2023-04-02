@@ -15,7 +15,7 @@ export default function Home() {
           <Heading size='xl' color={colorTheme.primary}>Bring subtitle to real life</Heading>
           <Input bgColor={'white'} placeholder={'session id'} ref={sessionId}>
           </Input>
-          <Stack w={'20vw'}>
+          <Stack w={'20vw'} minWidth={'150px'}>
             <Button bgColor={colorTheme.primary} color = {"white"} onClick={()=>{
                 router.push("/session?sessionId=" + sessionId.current.value)
               
