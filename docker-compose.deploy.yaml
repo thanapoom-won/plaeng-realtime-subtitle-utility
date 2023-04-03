@@ -16,8 +16,6 @@ services:
     ports:
       - 80:3000
     container_name: planeg-frontend
-    environment:
-      - NEXT_PUBLIC_API_URL=ws://planeg-backend:8080
     networks:
       - plaeng-net
 
