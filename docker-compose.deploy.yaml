@@ -14,7 +14,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - 443:3000
+      - 80:3000
     container_name: planeg-frontend
     environment:
       - NEXT_PUBLIC_API_URL=ws://planeg-backend:8080
