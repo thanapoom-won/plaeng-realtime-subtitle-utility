@@ -1,0 +1,26 @@
+services:
+  backend:
+    image: plaeng-backend
+    build:
+      context: ./backend
+    ports:
+      - 8080:8080
+    networks:
+      - plaeng-net
+    container_name: plaeng-backend
+    
+  frontend:
+    image: plaeng-frontend
+    build:
+      context: ./frontend
+    ports:
+      - 443:3000
+    container_name: planeg-frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=ws://planeg-backend:8080
+    networks:
+      - plaeng-net
+
+networks:
+  plaeng-net:
+    driver: bridge
