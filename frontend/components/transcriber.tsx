@@ -78,7 +78,6 @@ export function Transcriber(){
     }
 
     function toggleListening(){
-        if(isMicrophoneAvailable){
             if(listening){
                 SpeechRecognition.getRecognition()!.onend = ()=>{
                 }
@@ -93,8 +92,6 @@ export function Transcriber(){
                     resetTranscript();
                 }
             }
-        }
-        
     }
 
     function sendSpeech(speech : string, language : string){
