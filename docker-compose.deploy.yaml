@@ -29,6 +29,8 @@ services:
     volumes:
       - /etc/ssl:/etc/nginx/ssl:ro
     restart: always
+    networks:
+      - plaeng-net
 
 networks:
   plaeng-net:
