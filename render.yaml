@@ -2,7 +2,7 @@ services:
   - type: web
     name: plaeng-backend
     env: docker
-    region: oregon
+    region: singapore
     plan: free
     branch: main
     dockerfilePath: ./backend/Dockerfile
@@ -10,7 +10,7 @@ services:
   - type: web
     name: plaeng-frontend
     env: docker
-    region: oregon
+    region: singapore
     plan: free
     branch: main
     dockerfilePath: ./frontend/Dockerfile
