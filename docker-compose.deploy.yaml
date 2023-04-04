@@ -1,5 +1,5 @@
 services:
-  backend:
+  plaeng-backend:
     image: plaeng-backend
     build:
       context: ./backend
@@ -9,13 +9,13 @@ services:
       - plaeng-net
     container_name: plaeng-backend
     
-  frontend:
+  plaeng-frontend:
     image: plaeng-frontend
     build:
       context: ./frontend
     ports:
       - 3000:3000
-    container_name: planeg-frontend
+    container_name: plaeng-frontend
     networks:
       - plaeng-net
   
