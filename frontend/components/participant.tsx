@@ -10,6 +10,7 @@ import { io } from "socket.io-client";
 
 const socket = io(SocketConstant.baseUrl || 'ws://localhost:8080',{
     transports: ['websocket'],
+    path: "/socket.io/",
     autoConnect: false,
 });
 
