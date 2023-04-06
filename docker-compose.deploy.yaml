@@ -21,7 +21,7 @@ services:
   
   nginx:
     image: nginx:latest
-    port:
+    ports:
       - 80:80
       - 443:443
     restart: always
