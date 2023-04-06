@@ -8,16 +8,6 @@ services:
     networks:
       - plaeng-net
     container_name: plaeng-backend
-    
-  plaeng-frontend:
-    image: plaeng-frontend
-    build:
-      context: ./frontend
-    ports:
-      - 80:3000
-    container_name: plaeng-frontend
-    networks:
-      - plaeng-net
 
 networks:
   plaeng-net:
