@@ -13,6 +13,7 @@ const socket = io(SocketConstant.baseUrl || 'ws://localhost:8080',{
     path: "/socket.io/",
     rejectUnauthorized: false,
     autoConnect: false,
+    secure: true
 });
 
 export function Participant(){
