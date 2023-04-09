@@ -29,14 +29,21 @@ export function Transcriber(){
     const [listening, setListenning] = useState(false);
     const [sessionId, setSessionId] = useState('');
     const [finalTranscript, setFinalTranscript] = useState('');
+    const [lastEmission, setLastEmission] = useState('');
     const timerId = useRef<any>(null);
     const { isOpen, onOpen, onClose } = useDisclosure()
+    const lastEmissionRef = useRef<any>();
+    const finalTranscriptRef = useRef<any>();
+    const languageRef = useRef<any>();
+
+    languageRef.current = language;
+    lastEmissionRef.current = lastEmission;
+    finalTranscriptRef.current = finalTranscript;
 
     useEffect(()=>{
         if(transcript.trim() != ''){
             setFinalTranscript(transcript);
         }
-        sendSpeech(transcript,language)
     },[transcript])
 
     useEffect(()=>{
@@ -60,6 +67,13 @@ export function Transcriber(){
                 });
             })
             socket.connect();
+            setInterval(() => {
+                if(finalTranscriptRef.current.trim() != '' && 
+                lastEmissionRef.current != finalTranscriptRef.current){
+                    setLastEmission(finalTranscriptRef.current)
+                    sendSpeech(finalTranscriptRef.current,languageRef.current);
+                }
+            }, speechToTextParameter.emitInterval);
         }
     },[])
 
@@ -75,7 +89,8 @@ export function Transcriber(){
     },[isMicrophoneAvailable,browserSupportsSpeechRecognition])
 
     function onMessageEnd(event : any){
-
+        resetTranscript();
+        setLastEmission('');
         SpeechRecognition.getRecognition()!.lang = language;
         SpeechRecognition.getRecognition()?.start();
     }
@@ -91,9 +106,6 @@ export function Transcriber(){
                 SpeechRecognition.getRecognition()?.start();
                 setListenning(true);
                 SpeechRecognition.getRecognition()!.onend = onMessageEnd
-                SpeechRecognition.getRecognition()!.onspeechstart = ()=>{
-                    resetTranscript();
-                }
             }
     }
 
