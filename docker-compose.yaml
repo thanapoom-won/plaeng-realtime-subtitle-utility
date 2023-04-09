@@ -8,6 +8,7 @@ services:
     networks:
       - plaeng-net
     container_name: plaeng-backend
+    restart: always
     
   plaeng-frontend:
     image: plaeng-frontend
@@ -18,6 +19,7 @@ services:
     container_name: plaeng-frontend
     networks:
       - plaeng-net
+    restart: always
   
   nginx:
     image: nginx:latest
