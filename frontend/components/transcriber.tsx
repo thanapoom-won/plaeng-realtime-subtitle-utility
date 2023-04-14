@@ -30,6 +30,7 @@ export function Transcriber(){
     const [sessionId, setSessionId] = useState('');
     const [finalTranscript, setFinalTranscript] = useState('');
     const [lastEmission, setLastEmission] = useState('');
+    const [sequence,setSequence] = useState(0);
     const timerId = useRef<any>(null);
     const { isOpen, onOpen, onClose } = useDisclosure()
     const lastEmissionRef = useRef<any>();
@@ -109,14 +110,17 @@ export function Transcriber(){
             }
     }
 
-    function sendSpeech(speech : string, language : string){
+    async function sendSpeech(speech : string, language : string){
         if(speech == ""){
             return;
         }
-        socket.emit("hostSpeech",{
+        await socket.emit("hostSpeech",{
             speech : speech,
-            language: speechToTranslate.get(language)
+            language: speechToTranslate.get(language),
+            seq: sequence,
+            isBreak: false
         })
+        setSequence(sequence+1);
     }
 
     return(

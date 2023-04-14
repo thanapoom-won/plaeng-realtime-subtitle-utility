@@ -22,5 +22,7 @@ export interface ChangeLanguageDto{
 
 export interface HostSpeechDto{
     speech: string,
-    language: string
+    language: string,
+    seq: number,
+    isBreak: boolean
 }
