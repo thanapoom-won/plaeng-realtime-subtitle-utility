@@ -34,10 +34,6 @@ export function Transcriber(){
     const [subtitleLanguage, setSubtitleLanguage] = useState(languageTranslateTag[0].tag)
     const [listening, setListenning] = useState(false);
     const [sessionId, setSessionId] = useState('');
-    const [lastEmission, setLastEmission] = useState('');
-    const [sequence,setSequence] = useState(0);
-    const [buffer, setBuffer] = useState<Map<number,subtitleDto>>(new Map<number,subtitleDto>());
-    const [expectedSeq, setExpectedSeq] = useState(-1);
     const [currentSubtitle, setCurrentSubtitle] = useState('');
     const [subtitleHistory, setSubtitleHistory] = useState<string[]>([]);
 
@@ -49,18 +45,35 @@ export function Transcriber(){
     const transcriptRef = useRef<any>();
     const subtitleHistoryRef = useRef<any>();
     const currentSubtitleRef = useRef<any>();
-    const expectedSeqRef = useRef<any>();
-    const bufferRef = useRef<any>();
-    const sequenceRef= useRef<any>();
+    const expectedSeqRef = useRef<number>(-1);
+    const bufferRef = useRef<Map<number,subtitleDto>>(new Map<number,subtitleDto>());
+    const sequenceRef= useRef<any>(0);
 
     languageRef.current = language;
-    lastEmissionRef.current = lastEmission;
+    lastEmissionRef.current = '';
     transcriptRef.current = transcript;
     subtitleHistoryRef.current = subtitleHistory;
     currentSubtitleRef.current = currentSubtitle;
-    expectedSeqRef.current = expectedSeq;
-    bufferRef.current = buffer;
-    sequenceRef.current = sequence;
+
+    async function fillGap(){
+        let counter = expectedSeqRef.current;
+        counter = counter+1;
+        if(bufferRef.current.size > 0){
+            while(bufferRef.current.has(counter)){
+                const b = bufferRef.current.get(counter);
+                if(b?.isBreak){
+                    setSubtitleHistory(old=> [...old,b.speech])
+                    setCurrentSubtitle('');
+                }
+                else{
+                    setCurrentSubtitle(b!.speech);
+                }
+                bufferRef.current.delete(counter);
+                counter = counter + 1;
+            }
+        }
+        expectedSeqRef.current = counter;
+    }
 
     useEffect(()=>{
         if(sessionId == ''){
@@ -71,8 +84,8 @@ export function Transcriber(){
             })
             socket.on("subtitle", (e)=>{
                 transcriptContainer.current?.scrollIntoView({ behavior: "smooth" })
-                if(expectedSeq == -1){
-                    setExpectedSeq(e.seq + 1);
+                if(expectedSeqRef.current == -1){
+                    expectedSeqRef.current =  e.seq + 1;
                     if(e.isBreak){
                         setSubtitleHistory(old=> [...old,currentSubtitleRef.current])
                         setCurrentSubtitle('');
@@ -83,7 +96,6 @@ export function Transcriber(){
                 }
                 else{
                     if(expectedSeqRef.current == e.seq){
-                        let counter = expectedSeqRef.current;
                         if(e.isBreak){
                             setSubtitleHistory(old=> [...old,currentSubtitleRef.current])
                             setCurrentSubtitle('');
@@ -91,33 +103,14 @@ export function Transcriber(){
                         else{
                             setCurrentSubtitle(e.speech);
                         }
-                        counter = counter+1;
-                        if(bufferRef.current.size > 0){
-                            let deleted :number[] = [];
-                            while(bufferRef.current.has(counter)){
-                                const b = bufferRef.current.get(counter);
-                                if(b.isBreak){
-                                    setSubtitleHistory(old=> [...old,b.speech])
-                                    setCurrentSubtitle('');
-                                }
-                                else{
-                                    setCurrentSubtitle(b.speech);
-                                }
-                                deleted.push(counter);
-                                counter += 1;
-                            }
-                            setBuffer(
-                                new Map(
-                                    [...bufferRef.current].filter(([k,v])=> !deleted.includes(k)))
-                            )
-                        }
-                        setExpectedSeq(counter);
+                        fillGap();
                     }
                     else if(e.seq > expectedSeqRef.current){
-                        setBuffer(new Map(bufferRef.current.set(e.seq,{
+                        bufferRef.current.set(e.seq,{
                             speech : e.speech,
                             isBreak: e.isBreak
-                        })))
+                        })
+                        fillGap();
                     }
                 }
             })
@@ -125,7 +118,7 @@ export function Transcriber(){
             setInterval(() => {
                 if(transcriptRef.current.trim() != '' &&
                 lastEmissionRef.current != transcriptRef.current){
-                    setLastEmission(transcriptRef.current);
+                    lastEmissionRef.current = transcriptRef.current;
                     sendSpeech(transcriptRef.current,languageRef.current,false)
                 }
             }, speechToTextParameter.emitInterval);
@@ -145,7 +138,7 @@ export function Transcriber(){
 
     function onMessageEnd(event : any){
         resetTranscript();
-        setLastEmission('');
+        lastEmissionRef.current = '';
         SpeechRecognition.getRecognition()!.lang = language;
         SpeechRecognition.getRecognition()?.start();
     }
@@ -178,7 +171,7 @@ export function Transcriber(){
             seq: sequenceRef.current,
             isBreak: isBreak
         })
-        setSequence(sequenceRef.current+1);
+        sequenceRef.current = sequenceRef.current + 1;
     }
 
     return(
@@ -201,14 +194,17 @@ export function Transcriber(){
         <Stack alignItems={'center'} spacing={5}>
             <Heading size='xl' color={colorTheme.primary}>Session #{sessionId}</Heading>
             <Box h={'30vh'} w={'70vw'} overflowX={'hidden'} overflowY={'scroll'}>
-                <Heading size={'lg'} color={colorTheme.primary} textAlign='center'>
-                    {subtitleHistory.map((s)=>{
-                        return s + " ";
+                <Heading size={'lg'} color={'#92989c'} textAlign='center'>
+                    {subtitleHistory.map((s,id)=>{
+                        return (<div key={id}>{s}</div>);
                     })
                     } 
-                    {currentSubtitle}
-                    <div ref={transcriptContainer}></div>
                 </Heading>
+                <Heading size={'lg'} color={colorTheme.primary} textAlign='center'>
+                    {currentSubtitle}
+                </Heading>
+                    <div ref={transcriptContainer}></div>
+                
             </Box>
             <Box w={'30vw'}>
             <Text>Speech language</Text>

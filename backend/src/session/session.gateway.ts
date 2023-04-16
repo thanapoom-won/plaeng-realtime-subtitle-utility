@@ -86,14 +86,22 @@ export class SessionGateway implements OnGatewayDisconnect{
     if(this.sessionService.isHost(host.id)){
       const session = this.sessionService.getSessionFromHostWsId(host.id);
       if(dto.language == session.hostSubtitleLanguage  || dto.speech.trim() == "" || dto.isBreak){
-        this.server.to(host.id).emit("subtitle",{
-          seq : dto.seq,
-          speech : dto.speech,
-          isBreak : dto.isBreak
-        });
+        if(dto.isBreak){
+          this.server.to(host.id).emit("subtitle",{
+            seq : dto.seq,
+            speech : '',
+            isBreak : dto.isBreak
+          });
+        }else{
+          this.server.to(host.id).emit("subtitle",{
+            seq : dto.seq,
+            speech : dto.speech,
+            isBreak : dto.isBreak
+          });
+        }
       }else if(dto.speech !== null && dto.speech.trim() !== ''){
-        const translatResult = await translate(dto.speech.toString(), {from : dto.language, to : session.hostSubtitleLanguage});
         try{
+          const translatResult = await translate(dto.speech.toString(), {from : dto.language, to : session.hostSubtitleLanguage});
           this.server.to(host.id).emit("subtitle",{
             seq : dto.seq,
             speech : translatResult,
@@ -115,8 +123,8 @@ export class SessionGateway implements OnGatewayDisconnect{
           })
         }
         else if(dto.speech !== null && dto.speech.trim() !== ''){
-          const translatResult = await translate(dto.speech.toString(), {from : dto.language, to : sr.language});
           try{
+            const translatResult = await translate(dto.speech.toString(), {from : dto.language, to : sr.language});
             sr.participantsWSId.forEach(wsId=>{
               this.server.to(wsId).emit("subtitle",{
                 seq : dto.seq,

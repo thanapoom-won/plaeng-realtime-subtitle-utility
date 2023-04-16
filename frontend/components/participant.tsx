@@ -16,12 +16,47 @@ const socket = io(SocketConstant.baseUrl || 'ws://localhost:8080',{
     secure: true
 });
 
+interface subtitleDto{
+    speech : string,
+    isBreak : boolean
+}
+
 export function Participant(){
     const [language, setLanaguage] = useState(languageSpeechTags[0].tag);
     const [sessionId, setSessionId] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | undefined>('');
-    const [subtitle,setSubtitle] = useState('');
+    const [currentSubtitle, setCurrentSubtitle] = useState('');
+    const [subtitleHistory, setSubtitleHistory] = useState<string[]>([]);
     const router = useRouter();
+
+    const transcriptContainer = useRef<any>();
+    const subtitleHistoryRef = useRef<any>();
+    const currentSubtitleRef = useRef<any>();
+    const expectedSeqRef = useRef<number>(-1);
+    const bufferRef = useRef<Map<number,subtitleDto>>(new Map<number,subtitleDto>());
+    
+    subtitleHistoryRef.current = subtitleHistory;
+    currentSubtitleRef.current = currentSubtitle;
+    
+    async function fillGap(){
+        let counter = expectedSeqRef.current;
+        counter = counter+1;
+        if(bufferRef.current.size > 0){
+            while(bufferRef.current.has(counter)){
+                const b = bufferRef.current.get(counter);
+                if(b?.isBreak){
+                    setSubtitleHistory(old=> [...old,b.speech])
+                    setCurrentSubtitle('');
+                }
+                else{
+                    setCurrentSubtitle(b!.speech);
+                }
+                bufferRef.current.delete(counter);
+                counter = counter + 1;
+            }
+        }
+        expectedSeqRef.current = counter;
+    }
 
     useEffect(()=>{
         if(!router.isReady) return
@@ -42,7 +77,36 @@ export function Participant(){
             setErrorMessage(e.status + " : " +e.message)
         })
         socket.on('subtitle',(e)=>{
-            setSubtitle(e)
+            transcriptContainer.current?.scrollIntoView({ behavior: "smooth" })
+                if(expectedSeqRef.current == -1){
+                    expectedSeqRef.current =  e.seq + 1;
+                    if(e.isBreak){
+                        setSubtitleHistory(old=> [...old,currentSubtitleRef.current])
+                        setCurrentSubtitle('');
+                    }
+                    else{
+                        setCurrentSubtitle(e.speech);
+                    }
+                }
+                else{
+                    if(expectedSeqRef.current == e.seq){
+                        if(e.isBreak){
+                            setSubtitleHistory(old=> [...old,currentSubtitleRef.current])
+                            setCurrentSubtitle('');
+                        }
+                        else{
+                            setCurrentSubtitle(e.speech);
+                        }
+                        fillGap();
+                    }
+                    else if(e.seq > expectedSeqRef.current){
+                        bufferRef.current.set(e.seq,{
+                            speech : e.speech,
+                            isBreak: e.isBreak
+                        })
+                        fillGap();
+                    }
+                }
         })
         socket.on('sessionEnd',(e)=>{
             setErrorMessage("This session has ended")
@@ -51,24 +115,21 @@ export function Participant(){
         
     },[router.isReady])
     
-    const timerId = useRef<any>(null);
-    useEffect(()=>{
-        let resetTime = speechToTextParameter.speechGapMultiplier * subtitle.length;
-        if(resetTime < 1000){
-            resetTime = 1000
-        }
-        if(timerId.current !== null){
-            clearTimeout(timerId.current);
-        }
-        timerId.current = setTimeout(()=>{
-            setSubtitle('');
-        },resetTime)
-    },[subtitle])
-
-    
     return(
         <Stack alignItems={'center'} spacing={8}>
             <Heading size='xl' color={colorTheme.primary}>{errorMessage!='' ? errorMessage : "Session #" + sessionId}</Heading>
+            <Box h={'30vh'} w={'70vw'} overflowX={'hidden'} overflowY={'scroll'}>
+                <Heading size={'lg'} color={'#92989c'} textAlign='center'>
+                    {subtitleHistory.map((s,id)=>{
+                        return (<div key={id}>{s}</div>);
+                    })
+                    } 
+                </Heading>
+                <Heading size={'lg'} color={colorTheme.primary} textAlign='center'>
+                    {currentSubtitle}
+                </Heading>
+                    <div ref={transcriptContainer}></div>
+            </Box>
             <Box w={'30vw'}>
                 <Text>Subtitle language</Text>
             <Select onChange={e=>{
@@ -87,11 +148,6 @@ export function Participant(){
                     })
                 }
             </Select>
-            </Box>
-            <Box h={'30vh'} w={'70vw'}>
-                <Heading size={'lg'} color={colorTheme.primary} textAlign='center'>
-                    {subtitle}
-                </Heading>
             </Box>
             </Stack>
     )
