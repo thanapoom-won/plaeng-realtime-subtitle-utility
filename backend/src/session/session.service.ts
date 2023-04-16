@@ -22,6 +22,18 @@ export class SessionService {
         Logger.log(newSessionId + ", " + subtitleLang, "Session Created");
         return newSessionId;
     }
+
+    async newSessionFixedId(hostSocketId: string, subtitleLang: string,sessionId : string){
+        const newSession = {
+            hostSocketId : hostSocketId,
+            subRoom: [],
+            hostSubtitleLanguage: subtitleLang
+        }
+        this.sessions.set(sessionId,newSession);
+        this.hostToSession.set(hostSocketId,sessionId);
+        Logger.log(sessionId + ", " + subtitleLang, "Session Created");
+        return sessionId;
+    }
     isHost(clientId: string){
         return this.hostToSession.has(clientId)
     }

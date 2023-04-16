@@ -38,6 +38,8 @@ export function Transcriber(){
     const [subtitleHistory, setSubtitleHistory] = useState<string[]>([]);
 
     const { isOpen, onOpen, onClose } = useDisclosure()
+    
+    const router = useRouter();
 
     const lastEmissionRef = useRef<any>();
     const languageRef = useRef<any>();
@@ -76,12 +78,29 @@ export function Transcriber(){
     }
 
     useEffect(()=>{
+        if(!router.isReady) return
+        const query = new URLSearchParams(window.location.search);
+        const specialSid = query.get('special');
         if(sessionId == ''){
-            socket.on('connect', ()=>{
-                socket.emit('hostSession',languageTranslateTag[0].tag,(res: any)=>{
-                    setSessionId(res)
-                });
-            })
+            if(specialSid === null){
+                socket.on('connect', ()=>{
+                    socket.emit('hostSession',languageTranslateTag[0].tag,(res: any)=>{
+                        setSessionId(res)
+                    });
+                })
+            }
+            else{
+                socket.on('connect', ()=>{
+                    socket.emit('hostSessionFixedId',
+                    {
+                        subtitleLang : languageTranslateTag[0].tag,
+                        sessionId : specialSid
+                    }
+                    ,(res: any)=>{
+                        setSessionId(res)
+                    });
+                })
+            }
             socket.on("subtitle", (e)=>{
                 transcriptContainer.current?.scrollIntoView({ behavior: "smooth" })
                 if(expectedSeqRef.current == -1){
@@ -123,7 +142,7 @@ export function Transcriber(){
                 }
             }, speechToTextParameter.emitInterval);
         }
-    },[])
+    },[router.isReady])
 
     useEffect(()=>{
         if(!browserSupportsSpeechRecognition){

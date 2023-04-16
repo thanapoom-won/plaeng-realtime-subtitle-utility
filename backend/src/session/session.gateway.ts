@@ -5,7 +5,7 @@ import { OnGatewayDisconnect } from '@nestjs/websockets/interfaces';
 import axios from 'axios';
 import * as translate from 'translate-google';
 import { Server, Socket } from 'socket.io';
-import { ChangeLanguageDto, HostSpeechDto, JoinSessionDto } from './session.dto';
+import { ChangeLanguageDto, createSessionFixedIdDto, HostSpeechDto, JoinSessionDto } from './session.dto';
 import { SessionService } from './session.service';
 
 @WebSocketGateway({
@@ -45,6 +45,14 @@ export class SessionGateway implements OnGatewayDisconnect{
     @MessageBody() subtitleLang: string
   ){
     return await this.sessionService.newSession(host.id,subtitleLang)
+  }
+
+  @SubscribeMessage('hostSessionFixedId')
+  async createSessionFixedId(
+    @ConnectedSocket() host : Socket,
+    @MessageBody() dto : createSessionFixedIdDto
+  ){
+    return await this.sessionService.newSessionFixedId(host.id,dto.subtitleLang,dto.sessionId);
   }
 
   @SubscribeMessage('joinSession')
