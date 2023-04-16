@@ -8,6 +8,7 @@ export interface SubRoom{
 }
 export interface Session {
     hostSocketId : string,
+    hostSubtitleLanguage: string,
     subRoom : SubRoom[]
 }
 export interface JoinSessionDto{
@@ -19,7 +20,6 @@ export interface ChangeLanguageDto{
     sessionId: string,
     language: string
 }
-
 export interface HostSpeechDto{
     speech: string,
     language: string,

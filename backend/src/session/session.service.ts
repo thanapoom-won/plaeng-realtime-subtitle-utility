@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
-import { Participant, Session } from './session.dto';
+import { ChangeLanguageDto, Participant, Session } from './session.dto';
 
 @Injectable()
 export class SessionService {
@@ -9,16 +9,17 @@ export class SessionService {
     private participantToSession : Map<string,string> = new Map<string,string>();
     private hostToSession : Map<string,string> = new Map<string,string>();
 
-    async newSession(hostSocketId : string){
+    async newSession(hostSocketId : string, subtitleLang: string){
         const sessionIdLength = 5;
         const newSessionId = await this.generateSessionId(sessionIdLength);
         const newSession = {
             hostSocketId : hostSocketId,
-            subRoom: []
+            subRoom: [],
+            hostSubtitleLanguage: subtitleLang
         }
         this.sessions.set(newSessionId,newSession);
         this.hostToSession.set(hostSocketId,newSessionId);
-        Logger.log(newSessionId, "Session Created");
+        Logger.log(newSessionId + ", " + subtitleLang, "Session Created");
         return newSessionId;
     }
     isHost(clientId: string){
@@ -82,6 +83,17 @@ export class SessionService {
             }
         }
         throw new WsException({message : "User is not in the session", status : 404})
+    }
+
+    async hostChangeLanguage(language: string,socketId :string){
+        if(this.isHost(socketId)){
+            const sessionId = this.hostToSession.get(socketId);
+            this.sessions.get(sessionId).hostSubtitleLanguage = language;
+            Logger.log("session " + sessionId +" to " + this.sessions.get(sessionId).hostSubtitleLanguage, "Host change language")
+        }
+        else{
+            throw new WsException({message : "Host not found", status : 404})
+        }
     }
 
     async removeUserFromSession(socketId: string){
