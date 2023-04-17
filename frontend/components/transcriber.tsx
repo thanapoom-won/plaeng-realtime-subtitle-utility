@@ -213,7 +213,7 @@ export function Transcriber(){
         <Stack alignItems={'center'} spacing={5}>
             <Heading size='xl' color={colorTheme.primary}>Session #{sessionId}</Heading>
             <Box h={'30vh'} w={'70vw'} overflowX={'hidden'} overflowY={'scroll'}>
-                <Heading size={'lg'} color={'#92989c'} textAlign='center'>
+                <Heading size={'lg'} color={'#555f66'} textAlign='center'>
                     {subtitleHistory.map((s,id)=>{
                         return (<div key={id}>{s}</div>);
                     })
