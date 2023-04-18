@@ -74,6 +74,7 @@ export function Transcriber(){
                 counter = counter + 1;
             }
         }
+        transcriptContainer.current?.scrollIntoView({ behavior: "smooth" })
         expectedSeqRef.current = counter;
     }
 

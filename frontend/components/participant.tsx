@@ -55,6 +55,7 @@ export function Participant(){
                 counter = counter + 1;
             }
         }
+        transcriptContainer.current?.scrollIntoView({ behavior: "smooth" })
         expectedSeqRef.current = counter;
     }
 
@@ -119,13 +120,13 @@ export function Participant(){
         <Stack alignItems={'center'} spacing={8}>
             <Heading size='xl' color={colorTheme.primary}>{errorMessage!='' ? errorMessage : "Session #" + sessionId}</Heading>
             <Box h={'30vh'} w={'70vw'} overflowX={'hidden'} overflowY={'scroll'}>
-                <Heading size={'lg'} color={'#555f66'} textAlign='center'>
+                <Heading size={'lg'} color={'#555f66'} textAlign='center' lineHeight={'60px'}>
                     {subtitleHistory.map((s,id)=>{
                         return (<div key={id}>{s}</div>);
                     })
                     } 
                 </Heading>
-                <Heading size={'lg'} color={colorTheme.primary} textAlign='center'>
+                <Heading size={'lg'} color={colorTheme.primary} textAlign='center' lineHeight={'60px'}>
                     {currentSubtitle}
                 </Heading>
                     <div ref={transcriptContainer}></div>
