@@ -45,7 +45,7 @@ export function Participant(){
             while(bufferRef.current.has(counter)){
                 const b = bufferRef.current.get(counter);
                 if(b?.isBreak){
-                    setSubtitleHistory(old=> [...old,b.speech])
+                    setSubtitleHistory(old=> [...old,currentSubtitleRef.current])
                     setCurrentSubtitle('');
                 }
                 else{

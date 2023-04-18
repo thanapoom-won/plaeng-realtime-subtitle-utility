@@ -64,7 +64,7 @@ export function Transcriber(){
             while(bufferRef.current.has(counter)){
                 const b = bufferRef.current.get(counter);
                 if(b?.isBreak){
-                    setSubtitleHistory(old=> [...old,b.speech])
+                    setSubtitleHistory(old=> [...old,currentSubtitleRef.current])
                     setCurrentSubtitle('');
                 }
                 else{
@@ -101,7 +101,7 @@ export function Transcriber(){
                     });
                 })
             }
-            socket.on("subtitle", (e)=>{
+            socket.on("subtitle",  (e)=>{
                 transcriptContainer.current?.scrollIntoView({ behavior: "smooth" })
                 if(expectedSeqRef.current == -1){
                     expectedSeqRef.current =  e.seq + 1;
@@ -134,11 +134,11 @@ export function Transcriber(){
                 }
             })
             socket.connect();
-            setInterval(() => {
+            setInterval(async () => {
                 if(transcriptRef.current.trim() != '' &&
-                lastEmissionRef.current != transcriptRef.current){
+                lastEmissionRef.current.trim() != transcriptRef.current.trim()){
                     lastEmissionRef.current = transcriptRef.current;
-                    sendSpeech(transcriptRef.current,languageRef.current,false)
+                    await sendSpeech(transcriptRef.current,languageRef.current,false)
                 }
             }, speechToTextParameter.emitInterval);
         }
@@ -155,7 +155,7 @@ export function Transcriber(){
         }
     },[isMicrophoneAvailable,browserSupportsSpeechRecognition])
 
-    function onMessageEnd(event : any){
+    async function onMessageEnd(event : any){
         resetTranscript();
         lastEmissionRef.current = '';
         SpeechRecognition.getRecognition()!.lang = language;
@@ -174,14 +174,26 @@ export function Transcriber(){
                 SpeechRecognition.getRecognition()?.start();
                 setListenning(true);
                 SpeechRecognition.getRecognition()!.onend = onMessageEnd
-                SpeechRecognition.getRecognition()!.onspeechstart = ()=>{
-                    sendSpeech('break',languageRef.current,true);
+                SpeechRecognition.getRecognition()!.onaudiostart = async ()=>{
+                    await sendSpeech('',languageRef.current,true);
+                    resetTranscript();
+                    lastEmissionRef.current = '';
                 }
             }
     }
 
     async function sendSpeech(speech : string, language : string, isBreak: boolean){
-        if(speech == ""){
+        if(isBreak == true){
+            await socket.emit("hostSpeech",{
+                speech : '',
+                language: speechToTranslate.get(language),
+                seq: sequenceRef.current,
+                isBreak: isBreak
+            })
+            sequenceRef.current = sequenceRef.current + 1;
+            return;
+        }
+        if(speech.trim() == ""){
             return;
         }
         await socket.emit("hostSpeech",{
