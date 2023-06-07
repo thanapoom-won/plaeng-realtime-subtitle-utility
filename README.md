@@ -76,3 +76,13 @@ To obtain the ssl certificate to enable HTTPS
 
 1. go to root directory of this repo.
 2. run `docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d <your-domain-name>`
+
+# How to use the applcation
+1. visit your application with web browser, you will see a homepage with a textfield, "Join session" button and "Host new session button".
+2. click "Host new session button".
+3. select the language you want to speak in "Speech language" list.
+4. select the subtitle language in "Subtitle language" list.
+5. click "Start listening", and say something. Everything you speak will be translated to your "Subtitle language" and display on the screen.
+6. to let anyone join the session. Give them session id on the top of the page.
+7. the participant have to put the session id in the homepage's textfield. Then click "Join Session".
+8. after that, the participants can select their desire subtitle language. Everything the speaker say will be translated and display on the participant's screen in their language.
