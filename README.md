@@ -86,3 +86,7 @@ To obtain the ssl certificate to enable HTTPS
 6. to let anyone join the session. Give them session id on the top of the page.
 7. the participant have to put the session id in the homepage's textfield. Then click "Join Session".
 8. after that, the participants can select their desire subtitle language. Everything the speaker say will be translated and display on the participant's screen in their language.
+
+# More about Plaeng
+
+Plaeng is a realtime subtitle utitlity prototype that is developed with Next.js as a frontend and NestJS as a backend. This prototype utilizes Browser's web speech API to transcribe the speaker's speech. This means that the application works differently across devices and browsers. For further development, we should utilize an external speech-to-text service to transcribe. Plaeng also utilize Google Translator service via "translate-google" Yarn package. This service is used to translate the transcribed text. However, the problem is this service send the output asynchronously, which mean the translated speech may be unordered. Therefore, I designed and implemented a text recombiner algorithm inspired by internet TCP protocal to recombine the translation result in order.
