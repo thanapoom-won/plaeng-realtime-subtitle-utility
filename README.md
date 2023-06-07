@@ -77,7 +77,7 @@ To obtain the ssl certificate to enable HTTPS
 1. go to root directory of this repo.
 2. run `docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d <your-domain-name>`
 
-# How to use the applcation
+# How to use the application
 1. visit your application with web browser, you will see a homepage with a textfield, "Join session" button and "Host new session button".
 2. click "Host new session button".
 3. select the language you want to speak in "Speech language" list.
